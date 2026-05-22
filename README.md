@@ -1,4 +1,4 @@
-# ueberboese-web
+# Überböse Web 🔈🎶
 
 A lightweight, high-performance web controller designed to orchestrate Bose SoundTouch hardware networks. By communicating directly with local speaker endpoints, this service offers real-time telemetry streaming, advanced developer utilities, and direct preset injection.
 

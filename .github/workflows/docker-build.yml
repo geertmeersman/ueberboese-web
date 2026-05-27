@@ -72,6 +72,15 @@ jobs:
             ${{ github.repository }}:latest
             ${{ github.repository }}:${{ steps.release_drafter.outputs.tag_name }}
 
+      - name: Update Docker Hub description
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          short-description: "Lightweight web controller designed to orchestrate Bose SoundTouch hardware networks."
+          readme-filepath: ./README.md
+
       - name: 🚀　Discord notification
         env:
           tag_name: ${{ steps.release_drafter.outputs.tag_name }}

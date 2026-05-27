@@ -593,7 +593,7 @@
 
             <div id="doctor-view-remote">
                 <div class="remote-art-frame">
-                    <img id="remote-album-art" src="" style="display: none;">
+                    <img id="remote-album-art" src="about:blank" alt="Album art" style="display: none;">
                 </div>
 
                 <div id="remote-track-title" class="remote-track">Selecteer een speaker</div>
@@ -1076,7 +1076,7 @@
 
         async function executeDoctorPairAccount() {
             const accId = document.getElementById('doc-account-id').value.trim();
-            if (!accId || !token) { alert("⚠️ Vul alle velden in!"); return; }
+            if (!accId) { alert("⚠️ Vul alle velden in!"); return; }
             try {
                 const response = await fetch('/api/doctor/set-account', {
                     method: 'POST',

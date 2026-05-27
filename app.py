@@ -1031,7 +1031,7 @@ def api_doctor_set_account():
             url, data=xml_body, headers={"Content-Type": "application/xml"}, timeout=15
         )
 
-        if res.statusCode == 200:
+        if res.status_code == 200:
             return jsonify({"status": "success"}), 200
         return jsonify({"error": f"Speaker API returned HTTP {res.status_code}"}), 502
     except Exception as e:

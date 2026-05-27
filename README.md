@@ -2,6 +2,28 @@
 
 A lightweight, high-performance web controller designed to orchestrate Bose SoundTouch hardware networks. By communicating directly with local speaker endpoints, this service offers real-time telemetry streaming, advanced developer utilities, and direct preset injection.
 
+---
+
+[![maintainer](https://img.shields.io/badge/maintainer-Geert%20Meersman-green?style=for-the-badge&logo=github)](https://github.com/geertmeersman)
+[![buyme_coffee](https://img.shields.io/badge/Buy%20me%20an%20Omer-donate-yellow?style=for-the-badge&logo=buymeacoffee)](https://www.buymeacoffee.com/geertmeersman)
+[![MIT License](https://img.shields.io/github/license/geertmeersman/ueberboese-web?style=for-the-badge)](https://github.com/geertmeersman/ueberboese-web/blob/main/LICENSE)
+
+[![GitHub issues](https://img.shields.io/github/issues/geertmeersman/ueberboese-web)](https://github.com/geertmeersman/ueberboese-web/issues)
+[![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/geertmeersman/ueberboese-web.svg)](http://isitmaintained.com/project/geertmeersman/ueberboese-web)
+[![Percentage of issues still open](http://isitmaintained.com/badge/open/geertmeersman/ueberboese-web.svg)](http://isitmaintained.com/project/geertmeersman/ueberboese-web)
+[![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen.svg)](https://github.com/geertmeersman/ueberboese-web/pulls)
+
+[![github release](https://img.shields.io/github/v/release/geertmeersman/ueberboese-web?logo=github)](https://github.com/geertmeersman/ueberboese-web/releases)
+[![github release date](https://img.shields.io/github/release-date/geertmeersman/ueberboese-web)](https://github.com/geertmeersman/ueberboese-web/releases)
+[![github last-commit](https://img.shields.io/github/last-commit/geertmeersman/ueberboese-web)](https://github.com/geertmeersman/ueberboese-web/commits)
+[![github contributors](https://img.shields.io/github/contributors/geertmeersman/ueberboese-web)](https://github.com/geertmeersman/ueberboese-web/graphs/contributors)
+[![github commit activity](https://img.shields.io/github/commit-activity/y/geertmeersman/ueberboese-web?logo=github)](https://github.com/geertmeersman/ueberboese-web/commits/main)
+
+![Docker Pulls](https://img.shields.io/docker/pulls/geertmeersman/ueberboese-web)
+![Docker Image Version](https://img.shields.io/docker/v/geertmeersman/ueberboese-web?label=docker%20image%20version)
+
+---
+
 ⚠️ **Prerequisite:** This frontend web application requires [ueberboese-api](https://github.com/julius-d/ueberboese-api) running as its backend management server.
 
 ### Key Features
@@ -42,28 +64,54 @@ UEBERBOESE_WEB_PORT=7082
 ## 🚀 Running the Application
 
 ### Method A: With Docker Compose (Recommended)
+The fastest way to deploy the controller is by using Docker Compose. Create a `docker-compose.yml` file in your directory and paste the configuration below. It pulls the official pre-built image directly from Docker Hub.
 
-Launch the container ecosystem instantly using the configured settings:
-
-```bash
-docker-compose up -d --build
+```yaml
+services:
+  ueberboese-web:
+    image: geertmeersman/ueberboese-web:latest
+    container_name: ueberboese-web
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+      - FLASK_SECRET_KEY=${FLASK_SECRET_KEY}
+      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
+      - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
+      - UEBERBOESE_API_URL=${UEBERBOESE_API_URL}
+      - UEBERBOESE_WEB_PORT=${UEBERBOESE_WEB_PORT}
 
 ```
 
-### Method B: Native Docker Commands
-
-To assemble and execute the container standalone, run:
+Before running, make sure your `.env` file is present in the same directory, then launch the stack:
 
 ```bash
-# Build the application image
-docker build -t ueberboese-web:latest .
+docker-compose up -d
 
-# Launch using local host network mode with your environmental configurations attached
-docker run -d \\
-  --name ueberboese-web \\
-  --network host \\
-  --env-file .env \\
-  --restart unless-stopped \\
-  ueberboese-web:latest
+```
+
+### Method B: Standalone Docker CLI
+
+If you prefer running a single container without Compose, pull and execute the image using the following command:
+
+```bash
+docker run -d \
+  --name ueberboese-web \
+  --network host \
+  --env-file .env \
+  --restart unless-stopped \
+  geertmeersman/ueberboese-web:latest
+
+```
+
+---
+
+## 🛠️ Development & Building from Source
+
+If you want to modify the source code or build the Docker image locally:
+
+```bash
+# Build the application image locally
+docker build -t geertmeersman/ueberboese-web:latest .
 
 ```

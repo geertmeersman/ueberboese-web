@@ -12,30 +12,22 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: 🗑　Delete drafts
         uses: hugo19941994/delete-draft-releases@v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 📝　Draft release
+      - name: 📝　Draft release (om de tag-naam te bepalen)
         uses: release-drafter/release-drafter@v7
         id: release_drafter
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 🔄　Update version in 'VERSION' and push changes
-        env:
-          tag_name: ${{ steps.release_drafter.outputs.tag_name }}
-        run: echo "$tag_name" > VERSION
-
-      - name: 📝　Publish release
-        uses: release-drafter/release-drafter@v7
-        id: release_published
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          publish: true
+      - name: 🔄　Update version in 'VERSION'
+        run: echo "${{ steps.release_drafter.outputs.tag_name }}" > VERSION
 
       - name: ✏️　Generate release changelog
         uses: heinrichreimer/github-changelog-generator-action@v2.4
@@ -48,11 +40,19 @@ jobs:
           unreleased: false
           addSections: '{"documentation":{"prefix":"**Documentation:**","labels":["documentation"]}}'
 
-      - name: ✅　Commit release notes
+      - name: ✅　Commit release notes and version bump
         uses: EndBug/add-and-commit@v10
         with:
-          message: Commit release notes and bump version ${{ steps.release_drafter.outputs.tag_name }}
-          pull: "--rebase --autostash"
+          message: "chore: bump version to ${ { steps.release_drafter.outputs.tag_name }} and update changelog"
+          pull: "--rebase --autostash" # Voorkomt de non-fast-forward error
+
+      - name: 📝　Publish release
+        uses: release-drafter/release-drafter@v7
+        id: release_published
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          publish: true
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4

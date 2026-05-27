@@ -1,0 +1,11 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Gebruik de nieuwste versie van Ruff
+    rev: v0.4.5
+    hooks:
+      # Linter: Controleert je code op fouten en clean code
+      - id: ruff
+        args: [--fix] # Zorgt ervoor dat Ruff veilige fouten direct zelf oplost
+
+      # Formatter: Zorgt voor automatische zwarte/consistente opmaak (vervanger van Black)
+      - id: ruff-format

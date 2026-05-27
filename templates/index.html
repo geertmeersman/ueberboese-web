@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Überböse Web Controller</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #121212;
+            color: #e0e0e0;
+            margin: 40px;
+        }
+
+        h1 {
+            color: #fff;
+            margin-bottom: 30px;
+        }
+
+        h3 {
+            border-left: 3px solid #00adb5;
+            padding-left: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-navigation {
+            display: flex;
+            border-bottom: 2px solid #333;
+            margin-bottom: 30px;
+        }
+
+        .tab-button {
+            background: none;
+            border: none;
+            color: #888;
+            padding: 12px 24px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-button:hover {
+            color: #fff;
+        }
+
+        .tab-button.active {
+            color: #00adb5;
+            border-bottom: 3px solid #00adb5;
+            margin-bottom: -2px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* GRID VOOR ALFABETISCHE COMPACTE KAARTEN */
+        .speakers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        /* KLIKBARE COMPACTE KAART */
+        .speaker-card {
+            position: relative;
+            background: #1e1e1e;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #2d2d2d;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            overflow: hidden;
+        }
+
+        .speaker-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+            border-color: #00adb5;
+        }
+
+        /* DYNAMISCHE TRANSPARANTE ACHTERGROND VAN DE KAART */
+        .speaker-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: var(--card-bg-url, none);
+            background-size: cover;
+            background-position: center;
+            opacity: 0.15;
+            filter: blur(4px);
+            z-index: 0;
+            transition: background-image 0.5s ease;
+        }
+
+        .speaker-header,
+        .live-metadata-container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .speaker-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .speaker-title {
+            font-size: 1.15em;
+            font-weight: bold;
+            color: #fff;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .speaker-ip {
+            font-size: 0.85em;
+            color: #888;
+            margin: 2px 0 0 0;
+        }
+
+        .state-badge {
+            background: #333;
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.72em;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .state-badge.playing {
+            background: #1db954 !important;
+            color: #000 !important;
+        }
+
+        /* FIX: HOOGTE EN OPBOUW ALTIJD IDENTIEK HOUDEN */
+        .live-metadata-container {
+            display: flex;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px;
+            border-radius: 6px;
+            align-items: center;
+            height: 44px;
+            box-sizing: border-box;
+        }
+
+        .live-album-art {
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            object-fit: cover;
+            background: #282828;
+            border: 1px solid #333;
+            flex-shrink: 0;
+        }
+
+        .metadata-text {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .live-track-title {
+            font-weight: bold;
+            color: #00adb5;
+            margin: 0 0 2px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 0.9em;
+        }
+
+        .live-artist-name {
+            color: #aaa;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 0.8em;
+        }
+
+        /* --- DETAILED REMOTE INTERFACE STYLING --- */
+        .remote-layout {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #1e1e1e;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #2d2d2d;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .remote-art-frame {
+            width: 220px;
+            height: 220px;
+            margin: 0 auto 20px auto;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
+            background: #282828;
+            border: 1px solid #333;
+        }
+
+        .remote-art-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .remote-track {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+
+        .remote-artist {
+            font-size: 1.1em;
+            color: #00adb5;
+            margin-bottom: 25px;
+        }
+
+        /* VOLUME CONTROLS */
+        .remote-volume-section {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #2a2a2a;
+        }
+
+        .volume-slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .volume-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: #444;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #00adb5;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .volume-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 25px 0;
+        }
+
+        .btn-preset {
+            position: relative;
+            aspect-ratio: 1 / 1;
+            background-color: #2d2d2d;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            border: 1px solid #444;
+            border-radius: 8px;
+            cursor: pointer;
+            overflow: hidden;
+            transition: transform 0.2s, border-color 0.2s;
+            padding: 0;
+        }
+
+        .btn-preset:hover {
+            transform: scale(1.04);
+            border-color: #00adb5;
+        }
+
+        .preset-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.4) 70%, rgba(0, 0, 0, 0) 100%);
+            padding: 6px 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+
+        .preset-text {
+            color: #fff;
+            font-size: 0.78em;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+        }
+
+        .preset-source {
+            color: #00adb5;
+            font-size: 0.65em;
+            font-weight: bold;
+            font-variant: small-caps;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+        }
+
+        .preset-number {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #00adb5;
+            font-size: 0.75em;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn-action {
+            flex: 1;
+            background: #333;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1em;
+            transition: all 0.1s;
+        }
+
+        .btn-action:hover {
+            background: #444;
+            border-color: #555;
+        }
+
+        .btn-action.btn-primary {
+            background: #00adb5;
+            border-color: #00adb5;
+            color: #fff;
+        }
+
+        .btn-action.btn-primary:hover {
+            background: #008c91;
+        }
+
+        /* UNIVERSEEL CSS-GETEKEND POWER ICOON (WERKT OP ELKE GSM/BROWSER) */
+        .btn-power {
+            background: #2a2a2a;
+            border: 2px solid #e23e57;
+            position: relative;
+            flex: none;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-sizing: border-box;
+        }
+
+        .btn-power::before {
+            content: "";
+            position: absolute;
+            top: 6px;
+            width: 3px;
+            height: 12px;
+            background-color: #e23e57;
+            border-radius: 2px;
+            transition: all 0.2s;
+        }
+
+        .btn-power::after {
+            content: "";
+            position: absolute;
+            top: -3px;
+            width: 12px;
+            height: 8px;
+            background: #1e1e1e;
+        }
+
+        .btn-power:hover {
+            border-color: #fff;
+        }
+
+        .btn-power:hover::before {
+            background-color: #fff;
+        }
+
+        .btn-power.active-mode {
+            border-color: #1DB954;
+            background: rgba(27, 185, 84, 0.1);
+            box-shadow: 0 0 10px rgba(27, 185, 84, 0.2);
+        }
+
+        .btn-power.active-mode::before {
+            background-color: #1DB954;
+        }
+
+        .btn-power.active-mode:hover {
+            border-color: #1DB954;
+        }
+
+        .btn-power.active-mode:hover::before {
+            background-color: #1DB954;
+        }
+
+        /* SEARCH INTERFACE INPUTS */
+        .search-box-container {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .input-field {
+            flex: 1;
+            background: #1e1e1e;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+
+        .input-field:focus {
+            border-color: #00adb5;
+            outline: none;
+        }
+
+        .dropdown-field {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        /* PRESET CREATOR SEARCH RESULT LIST */
+        .search-results-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .result-row {
+            background: #1e1e1e;
+            border: 1px solid #2d2d2d;
+            padding: 12px 18px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* SPOTIFY ACCOUNTS & DISCOVERY */
+        .spotify-account-card {
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #2d2d2d;
+        }
+
+        .btn-spotify-login {
+            background: #1DB954;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 25px;
+        }
+
+        .btn-scan {
+            background: #333;
+            border: 1px solid #555;
+            color: #e0e0e0;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Überböse Web Controller</h1>
+
+    <div class="tab-navigation">
+        <button id="nav-speakers-tab" class="tab-button active" onclick="switchTab(event, 'speakers-tab')">📢
+            Dashboard</button>
+        <button id="nav-remote-tab" class="tab-button" onclick="switchTab(event, 'remote-tab')"
+            style="display: none;">🎮 Remote Control</button>
+        <button id="nav-preset-mgmt-tab" class="tab-button" onclick="switchTab(event, 'preset-mgmt-tab')">➕ Presets
+            Toevoegen</button>
+        <button id="nav-spotify-tab" class="tab-button" onclick="switchTab(event, 'spotify-tab')">🎵 Spotify
+            Accounts</button>
+    </div>
+
+    <div id="speakers-tab" class="tab-content active">
+        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+            <h3 style="margin: 0; border-left: 3px solid #00adb5; padding-left: 10px;">Geregistreerde Audio Systemen
+                (Alfabetisch)</h3>
+            <button class="btn-scan" style="margin: 0; padding: 4px 10px; font-size: 0.85em; cursor: pointer;"
+                onclick="refreshInventoryData()" title="Ververs Apparatenlijst">🔄</button>
+        </div>
+
+        <div id="db-speakers-container" class="speakers-grid">
+            <p style="color: #888;">Laden van netwerk inventaris...</p>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 40px;">
+            <h3 style="margin: 0; border-left: 3px solid #00adb5; padding-left: 10px;">Onontdekte Lokale Netwerk
+                Speakers</h3>
+            <button class="btn-scan" onclick="triggerManualScan()">🔍 Forceer Netwerk Scan</button>
+        </div>
+        <div id="network-speakers-container" class="speakers-grid">
+            <p style="color: #888;">Scannen naar SoundTouch hardware...</p>
+        </div>
+    </div>
+
+    <div id="remote-tab" class="tab-content">
+        <div class="remote-layout" style="max-width: 600px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="text-align: left;">
+                    <h2 id="remote-speaker-name" style="margin: 0; color: #fff;">Geen speaker geselecteerd</h2>
+                    <div id="remote-speaker-ip" style="color: #888; font-size: 0.9em;">0.0.0.0</div>
+                </div>
+                <button id="remote-power-btn" class="btn-action btn-power" onclick="triggerPowerButtonHold()"
+                    title="Aan / Uit"></button>
+            </div>
+
+            <div style="display: flex; background: #222; border-radius: 6px; padding: 4px; margin-bottom: 25px;">
+                <button id="subnav-remote" class="btn-action" style="margin:0; background:#333; border:none;"
+                    onclick="switchDoctorView(false)">🎮 Afstandsbediening</button>
+                <button id="subnav-doctor" class="btn-action"
+                    style="margin:0; background:transparent; border:none; color:#888;"
+                    onclick="switchDoctorView(true)">👨‍⚕️ Speaker Doctor</button>
+            </div>
+
+            <div id="doctor-view-remote">
+                <div class="remote-art-frame">
+                    <img id="remote-album-art" src="about:blank" alt="Album art" style="display: none;">
+                </div>
+
+                <div id="remote-track-title" class="remote-track">Selecteer een speaker</div>
+                <div id="remote-artist-name" class="remote-artist">op het dashboard</div>
+
+                <div class="control-buttons" style="margin-bottom: 25px;">
+                    <button id="remote-prev-btn" class="btn-action" onclick="triggerMediaKey('PREV_TRACK')"
+                        title="Vorig nummer">⏮</button>
+                    <button class="btn-action btn-primary" style="font-size: 1.1em; padding: 14px;"
+                        onclick="triggerMediaKey('PLAY_PAUSE')" title="Afspelen / Pauzeren">⏯</button>
+                    <button id="remote-next-btn" class="btn-action" onclick="triggerMediaKey('NEXT_TRACK')"
+                        title="Volgend nummer">⏭</button>
+                </div>
+
+                <h3>Geluidsvolume</h3>
+                <div class="remote-volume-section">
+                    <div id="remote-volume-text"
+                        style="font-size: 1.1em; font-weight: bold; color: #00adb5; margin-bottom: 10px;">0%</div>
+                    <div class="volume-slider-container">
+                        <button class="btn-action" style="padding: 8px; flex: none; width: 40px;"
+                            onclick="triggerVolumeDownButton()">🔉</button>
+                        <input type="range" id="remote-volume-range" class="volume-slider" min="0" max="100" value="0"
+                            oninput="handleVolumeSliderInput(this.value)"
+                            onchange="sendVolumeSliderToBackend(this.value)">
+                        <button class="btn-action" style="padding: 8px; flex: none; width: 40px;"
+                            onclick="triggerVolumeUpButton()">🔊</button>
+                    </div>
+                    <button id="remote-mute-btn" class="btn-action"
+                        style="margin-top: 15px; background: #2a2a2a; border-color: #555;"
+                        onclick="triggerMuteKeyToggle()">🔇 Mute System</button>
+                </div>
+
+                <h3>Presets</h3>
+                <div id="remote-presets-container" class="preset-buttons"></div>
+            </div>
+
+            <div id="doctor-view-panels" style="display: none; text-align: left;">
+                <div
+                    style="background: rgba(226, 62, 87, 0.1); border: 1px solid #e23e57; padding: 15px; border-radius: 8px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-weight: bold; color: #fff;">Hardware Systeem Reboot</div>
+                        <div style="font-size: 0.8em; color: #aaa;">Dwingt een herstart af via console poort 17000.
+                        </div>
+                    </div>
+                    <button class="btn-action"
+                        style="background: #e23e57; border-color: #e23e57; flex: none; width: auto; padding: 10px 20px;"
+                        onclick="executeDoctorReboot()">⚡ Reboot</button>
+                </div>
+
+                <div
+                    style="background: #282828; border: 1px solid #333; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+                    <h4 style="margin: 0 0 10px 0; color: #00adb5;">Pair Device with Marge Account</h4>
+                    <div style="margin-bottom: 12px;">
+                        <label style="font-size: 0.8em; color: #888; display: block; margin-bottom: 4px;">Account
+                            ID:</label>
+                        <input type="text" id="doc-account-id" class="input-field" style="padding:8px; width:100%">
+                    </div>
+                    <button class="btn-action btn-primary" style="padding: 10px;"
+                        onclick="executeDoctorPairAccount()">🔗 Koppel Account</button>
+                </div>
+
+                <div style="background: #121212; border: 1px solid #2d2d2d; padding: 20px; border-radius: 8px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h4 style="margin: 0; color: #fff;">Current System Configuration (poort 17000)</h4>
+                        <button class="btn-action" style="flex: none; padding: 4px 12px; font-size: 0.85em;"
+                            onclick="fetchDoctorConfiguration()">🔄 Laad</button>
+                    </div>
+                    <div id="doc-config-table"
+                        style="font-size: 0.85em; background: #1e1e1e; border-radius: 4px; overflow: hidden; margin-bottom: 15px;">
+                        <p style="padding: 15px; color: #666; margin: 0;">Registers niet geladen.</p>
+                    </div>
+                    <textarea id="doc-config-raw" readonly
+                        style="width: 100%; height: 120px; background: #000; border: 1px solid #222; color: #00ff00; font-family: monospace; font-size: 0.8em; padding: 8px; box-sizing: border-box; resize: vertical;"></textarea>
+                </div>
+            </div>
+
+            <button class="btn-action" style="margin-top: 25px; background: #222;"
+                onclick="document.getElementById('nav-speakers-tab').click()">⬅️ Terug naar Dashboard</button>
+        </div>
+    </div>
+
+    <div id="preset-mgmt-tab" class="tab-content">
+        <h3>Toewijzen van Nieuwe Presets (TuneIn / Spotify)</h3>
+        <p style="color: #aaa; font-size: 0.9em; margin-bottom: 25px;">Zoek live naar radiostations of voer direct een
+            bron in, kies je doelspeaker en een preset slot om deze op te slaan.</p>
+
+        <div class="search-box-container">
+            <select id="preset-source-type" class="dropdown-field" onchange="togglePresetSourceUi()">
+                <option value="TUNEIN">📻 TuneIn Radio</option>
+                <option value="SPOTIFY">🎵 Spotify Playlist / Track</option>
+            </select>
+
+            <input type="text" id="preset-search-input" class="input-field"
+                placeholder="Typ zendernaam (bijv. Joe FM, Radio 1)...">
+
+            <button class="btn-action btn-primary" style="flex: none; width: auto; padding: 0 25px;"
+                onclick="executePresetCatalogSearch()">🔍 Zoeken</button>
+        </div>
+
+        <div
+            style="display: flex; gap: 15px; background: #1e1e1e; padding: 20px; border-radius: 8px; border: 1px solid #2d2d2d; margin-bottom: 30px; align-items: center;">
+            <div style="flex: 1;">
+                <label style="font-size: 0.8em; color: #888; display: block; margin-bottom: 6px;">Doel Audio
+                    Systeem:</label>
+                <select id="preset-target-speaker" class="dropdown-field"
+                    style="width: 100%; box-sizing: border-box;"></select>
+            </div>
+            <div style="width: 150px;">
+                <label style="font-size: 0.8em; color: #888; display: block; margin-bottom: 6px;">Preset Knop:</label>
+                <select id="preset-target-slot" class="dropdown-field" style="width: 100%; box-sizing: border-box;">
+                    <option value="1">Preset 1</option>
+                    <option value="2">Preset 2</option>
+                    <option value="3">Preset 3</option>
+                    <option value="4">Preset 4</option>
+                    <option value="5">Preset 5</option>
+                    <option value="6">Preset 6</option>
+                </select>
+            </div>
+        </div>
+
+        <h4 style="color: #fff; margin-bottom: 15px;">Zoekresultaten / Invoer configuratie</h4>
+        <div id="preset-search-results-container" class="search-results-list">
+            <p style="color: #666; margin: 0;">Typ een zoekopdracht en klik op zoeken.</p>
+        </div>
+    </div>
+
+    <div id="spotify-tab" class="tab-content">
+        <h3>Gekoppelde Spotify Profielen</h3>
+        <a class="btn-spotify-login" href="/api/spotify/login">➕ Koppel Nieuw Spotify Account</a>
+        <div id="spotify-accounts-container">
+            <p style="color: #888;">Nog geen Spotify profielen geladen.</p>
+        </div>
+    </div>
+
+    <script>
+        let CURRENT_LIVE_STATES_CACHE = {};
+        let RAW_DEVICES_CACHE = [];
+        let SELECTED_SPEAKER_ID = null;
+        let SELECTED_SPEAKER_IP = "0.0.0.0";
+        let isUserDraggingVolume = false;
+        let GLOBAL_SPOTIFY_PROFILES = [];
+
+        function ensureHttps(url) {
+            if (!url) return '';
+            return url.startsWith('http://') ? url.replace('http://', 'https://') : url;
+        }
+
+        function switchTab(event, tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            if (event) event.currentTarget.classList.add('active');
+
+            if (tabId === 'preset-mgmt-tab') {
+                populatePresetTargetSpeakersDropdown();
+                populatePresetSpotifyAccountsDropdown();
+            }
+        }
+
+        function switchDoctorView(showDoctor) {
+            const remoteView = document.getElementById('doctor-view-remote');
+            const doctorView = document.getElementById('doctor-view-panels');
+            const subnavRemote = document.getElementById('subnav-remote');
+            const subnavDoctor = document.getElementById('subnav-doctor');
+
+            if (showDoctor) {
+                remoteView.style.display = 'none';
+                doctorView.style.display = 'block';
+                subnavRemote.style.background = 'transparent';
+                subnavRemote.style.color = '#888';
+                subnavDoctor.style.background = '#333';
+                subnavDoctor.style.color = '#fff';
+                fetchDoctorConfiguration();
+            } else {
+                remoteView.style.display = 'block';
+                doctorView.style.display = 'none';
+                subnavRemote.style.background = '#333';
+                subnavRemote.style.color = '#fff';
+                subnavDoctor.style.background = 'transparent';
+                subnavDoctor.style.color = '#888';
+            }
+        }
+
+        function populatePresetSpotifyAccountsDropdown() {
+            const selectContainer = document.getElementById('spotify-account-select-wrapper');
+            if (!selectContainer) return;
+
+            if (GLOBAL_SPOTIFY_PROFILES.length === 0) {
+                selectContainer.innerHTML = `<input type="text" id="spotify-direct-user" class="input-field" placeholder="Typ handmatig Spotify ID...">`;
+                return;
+            }
+
+            let selectHtml = `<select id="spotify-direct-user" class="dropdown-field" style="width:100%;">`;
+            GLOBAL_SPOTIFY_PROFILES.forEach(acc => {
+                selectHtml += `<option value="${acc.spotifyUserId}">${acc.displayName} (${acc.spotifyUserId})</option>`;
+            });
+            selectHtml += `</select>`;
+            selectContainer.innerHTML = selectHtml;
+        }
+
+        // --- EXECUTIE EN SELECTION LOGIC VOOR PRESET MAPPING ---
+        function togglePresetSourceUi() {
+            const srcType = document.getElementById('preset-source-type').value;
+            const inputField = document.getElementById('preset-search-input');
+            const resultsContainer = document.getElementById('preset-search-results-container');
+
+            if (srcType === 'SPOTIFY') {
+                inputField.placeholder = "Voer Spotify URL of URI in (playlist, track, album)...";
+                resultsContainer.innerHTML = `
+                    <div class="result-row" style="background: #252525; border-color: #1DB954; flex-direction: column; align-items: stretch; gap: 12px;">
+                        <div style="font-weight: bold; color: #fff; display: flex; justify-content: space-between; align-items: center;">
+                            <span>🎵 Spotify Preset Validatie</span>
+                            <span id="spotify-status-badge" style="font-size: 0.8em; color: #888;">Wacht op invoer...</span>
+                        </div>
+                        
+                        <div>
+                            <label style="font-size: 0.8em; color: #888; display: block; margin-bottom: 4px;">Koppel Profiel (sourceAccount):</label>
+                            <div id="spotify-account-select-wrapper">
+                                <p style="color:#666; font-size:0.85em; margin:0;">Profielen laden...</p>
+                            </div>
+                        </div>
+
+                        <div id="spotify-live-preview" style="display: none; background: #121212; padding: 15px; border-radius: 6px; align-items: center; gap: 15px; border: 1px solid #333;">
+                            <img id="spotify-preview-art" src="" style="width: 70px; height: 70px; border-radius: 6px; object-fit: cover; background: #282828;">
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-size: 0.75em; color: #1DB954; font-weight: bold; text-transform: uppercase;" id="spotify-preview-type">Playlist</div>
+                                <div style="font-weight: bold; color: #fff; font-size: 1.1em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="spotify-preview-title">-</div>
+                                <div style="font-size: 0.85em; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="spotify-preview-owner">Owner: -</div>
+                            </div>
+                        </div>
+
+                        <input type="hidden" id="spotify-direct-name">
+                        <input type="hidden" id="spotify-direct-logo">
+                        <input type="hidden" id="spotify-parsed-uri">
+
+                        <button id="spotify-save-btn" class="btn-action btn-primary" style="margin-top: 10px; display: none;" onclick="saveDirectSpotifyPreset()">💾 Opslaan in Speaker Slot</button>
+                    </div>
+                `;
+                populatePresetSpotifyAccountsDropdown();
+            } else {
+                inputField.placeholder = "Typ zendernaam (bijv. Joe FM, Radio 1)...";
+                resultsContainer.innerHTML = '<p style="color: #666; margin: 0;">Typ een zoekopdracht en klik op zoeken.</p>';
+            }
+        }
+
+        async function executePresetCatalogSearch() {
+            const srcType = document.getElementById('preset-source-type').value;
+            const query = document.getElementById('preset-search-input').value.trim();
+            const container = document.getElementById('preset-search-results-container');
+
+            if (!query) { alert("⚠️ Typ eerst een zoekterm of plak een link!"); return; }
+
+            // --- DEEL 1: SPOTIFY LIVE DATA OPHALEN & PREVIEWEN ---
+            if (srcType === 'SPOTIFY') {
+                let cleanUri = query;
+
+                // JavaScript omzetting van URL naar pure URI string
+                if (cleanUri.includes("open.spotify.com")) {
+                    try {
+                        const urlParts = cleanUri.replace(/^(https?:\/\/)?(www\.)?open\.spotify\.com\//, "").split('/');
+                        const type = urlParts[0];
+                        let id = urlParts[1];
+                        if (id.includes("?")) id = id.split("?")[0];
+                        cleanUri = `spotify:${type}:${id}`;
+                    } catch (e) { alert("Ongeldige Spotify URL"); return; }
+                }
+
+                // Gecorrigeerde JavaScript Regular Expression match (Vervangt de Dart raw strings)
+                const match = cleanUri.match(/^spotify:([a-z]+):([^?#\s]+)/);
+                if (!match) {
+                    alert("⚠️ Ongeldig Spotify formaat. Gebruik een URI (spotify:type:id) of open.spotify link.");
+                    return;
+                }
+
+                const type = match[1];
+                const id = match[2];
+
+                const statusBadge = document.getElementById('spotify-status-badge');
+                const previewBlock = document.getElementById('spotify-live-preview');
+                const previewArt = document.getElementById('spotify-preview-art');
+                const previewType = document.getElementById('spotify-preview-type');
+                const previewTitle = document.getElementById('spotify-preview-title');
+                const previewOwner = document.getElementById('spotify-preview-owner');
+                const saveBtn = document.getElementById('spotify-save-btn');
+
+                statusBadge.innerText = "🔄 Gegevens ophalen via Spotify API...";
+                statusBadge.style.color = "#00adb5";
+
+                try {
+                    const metadataResponse = await fetch(`/api/spotify/metadata?type=${type}&id=${id}`);
+                    const meta = await metadataResponse.json();
+
+                    if (!metadataResponse.ok || meta.error) {
+                        statusBadge.innerText = "❌ Validatie mislukt";
+                        statusBadge.style.color = "#e23e57";
+                        alert("Kon Spotify metadata niet verifiëren. Controleer of de playlist publiek toegankelijk is.");
+                        return;
+                    }
+
+                    previewType.innerText = type;
+                    previewTitle.innerText = meta.name || "Naamloze resource";
+                    previewOwner.innerText = meta.owner ? `Door: ${meta.owner}` : "";
+
+                    if (meta.image) {
+                        previewArt.src = ensureHttps(meta.image);
+                        previewArt.style.display = "block";
+                        document.getElementById('spotify-direct-logo').value = meta.image;
+                    } else {
+                        previewArt.style.display = "none";
+                        document.getElementById('spotify-direct-logo').value = "";
+                    }
+
+                    document.getElementById('spotify-direct-name').value = meta.name;
+                    document.getElementById('spotify-parsed-uri').value = cleanUri;
+
+                    previewBlock.style.display = "flex";
+                    saveBtn.style.display = "block";
+
+                    statusBadge.innerText = "🟢 Geverifieerd & Klaar!";
+                    statusBadge.style.color = "#1DB954";
+
+                } catch (err) {
+                    statusBadge.innerText = "❌ Validatie fout";
+                    statusBadge.style.color = "#e23e57";
+                    console.error(err);
+                }
+                return;
+            }
+
+            // --- DEEL 2: BESTAANDE TUNEIN ZOEKLOGICA ---
+            container.innerHTML = "<p style='color: #00adb5;'>Searching RadioTime registry...</p>";
+            try {
+                const response = await fetch(`/api/presets/tunein/search?query=${encodeURIComponent(query)}`);
+                const stations = await response.json();
+
+                if (!response.ok || stations.error) {
+                    container.innerHTML = `<p style='color: #e23e57;'>Fout bij laden: ${stations.error || 'Unknown error'}</p>`;
+                    return;
+                }
+
+                if (stations.length === 0) {
+                    container.innerHTML = "<p style='color: #aaa;'>Geen radiozenders gevonden voor deze zoekterm.</p>";
+                    return;
+                }
+
+                container.innerHTML = stations.map(s => `
+                    <div class="result-row">
+                        <div style="display: flex; align-items: center; gap: 15px; flex: 1; min-width: 0;">
+                            <img src="${ensureHttps(s.logo)}" style="width: 40px; height: 40px; border-radius: 4px; background: #282828; object-fit: cover; flex-shrink: 0;" onerror="this.style.display='none'">
+                            <div style="min-width: 0; flex: 1;">
+                                <div style="font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${s.name}</div>
+                                <div style="font-size: 0.8em; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ID: ${s.stationId} ${s.currentTrack ? ' | Spelend: ' + s.currentTrack : ''}</div>
+                            </div>
+                        </div>
+                        <button class="btn-action btn-primary" style="flex: none; width: auto; padding: 8px 16px; margin-left: 15px;" onclick="saveAssignedPreset('TUNEIN', '${s.stationId}', '${s.name.replace(/'/g, "\\'")}', '${s.logo}')">💾 Toewijzen</button>
+                    </div>
+                `).join('');
+            } catch (e) {
+                container.innerHTML = "<p style='color: #e23e57;'>Netwerkfout tijdens ophalen catalogus.</p>";
+            }
+        }
+
+        function populatePresetTargetSpeakersDropdown() {
+            const dropdown = document.getElementById('preset-target-speaker');
+            if (!dropdown) return;
+
+            if (RAW_DEVICES_CACHE.length === 0) {
+                dropdown.innerHTML = "<option value=''>Geen speakers geladen</option>";
+                return;
+            }
+
+            dropdown.innerHTML = RAW_DEVICES_CACHE.map(d => `
+                <option value="${d.ip}">${d.name} (${d.ip})</option>
+            `).join('');
+        }
+
+        async function saveAssignedPreset(source, contentId, name, logo, spotifyUserId = "") {
+            const speakerIp = document.getElementById('preset-target-speaker').value;
+            const slot = document.getElementById('preset-target-slot').value;
+
+            if (!speakerIp) { alert("⚠️ Selecteer een doel audio systeem!"); return; }
+
+            try {
+                const response = await fetch('/api/presets/assign', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ip: speakerIp,
+                        presetNumber: parseInt(slot),
+                        source: source,
+                        contentId: contentId,
+                        name: name,
+                        logo: logo,
+                        spotifyUserId: spotifyUserId
+                    })
+                });
+
+                if (response.ok) {
+                    alert(`🟢 Preset ${slot} succesvol direct opgeslagen op de speaker hardware!`);
+                    refreshInventoryData();
+                } else {
+                    const err = await response.json();
+                    alert(`❌ Hardware fout bij opslaan: ${err.error}`);
+                }
+            } catch (e) { alert("Netwerkfout bij opslaan van de preset."); }
+        }
+
+        function saveDirectSpotifyPreset() {
+            const uri = document.getElementById('spotify-parsed-uri').value;
+            const user = document.getElementById('spotify-direct-user').value;
+            const name = document.getElementById('spotify-direct-name').value;
+            const logo = document.getElementById('spotify-direct-logo').value;
+
+            if (!uri || !name || !user) {
+                alert("⚠️ Valideer eerst een geldige playlist via de Zoek-knop!");
+                return;
+            }
+            saveAssignedPreset('SPOTIFY', uri, name, logo, user);
+        }
+
+        // --- COMSOLE REGISTER DIAGNOSTICS ---
+        async function fetchDoctorConfiguration() {
+            const tableContainer = document.getElementById('doc-config-table');
+            const rawTextArea = document.getElementById('doc-config-raw');
+
+            tableContainer.innerHTML = "<p style='padding:15px; color:#00adb5;'>🛰️ Sockets openen op poort 17000... Een ogenblik.</p>";
+            rawTextArea.value = "Connecting to raw console socket stream...";
+
+            try {
+                const response = await fetch('/api/doctor/configuration', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ip: SELECTED_SPEAKER_IP })
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    tableContainer.innerHTML = `<p style='padding:15px; color:#e23e57;'>❌ Fout: ${data.error}</p>`;
+                    return;
+                }
+
+                rawTextArea.value = data.raw || "Geen raw data.";
+                const keys = Object.keys(data.parsed || {});
+                if (keys.length === 0) {
+                    tableContainer.innerHTML = "<p style='padding:15px; color:#aaa;'>Geen parameters gevonden in dump.</p>";
+                    return;
+                }
+
+                let htmlTable = `<table style='width:100%; border-collapse: collapse; text-align: left; table-layout: fixed;'>`;
+                keys.forEach((key, idx) => {
+                    const bg = idx % 2 === 0 ? '#222' : '#1a1a1a';
+                    htmlTable += `
+                        <tr style='background: ${bg}; border-bottom: 1px solid #2d2d2d; vertical-align: top;'>
+                            <td style='padding: 12px 10px; font-weight: bold; color: #00adb5; width: 35%; word-break: break-word; font-size: 0.9em;'>${key}</td>
+                            <td style='padding: 12px 10px; color: #fff; font-family: monospace; width: 65%; word-break: break-all; white-space: normal; line-height: 1.4;'>${data.parsed[key]}</td>
+                        </tr>`;
+                });
+                htmlTable += `</table>`;
+                tableContainer.innerHTML = htmlTable;
+            } catch (e) { tableContainer.innerHTML = `<p style='padding:15px; color:#e23e57;'>❌ Proxy verbindingsfout.</p>`; }
+        }
+
+        async function executeDoctorReboot() {
+            if (!confirm(`⚠️ Weet je zeker dat je speaker op IP ${SELECTED_SPEAKER_IP} hardwarematig wilt herstarten?`)) return;
+            try {
+                const response = await fetch('/api/doctor/reboot', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ip: SELECTED_SPEAKER_IP })
+                });
+                if (response.ok) {
+                    alert("⚡ Reboot succesvol! Toestel herstart nu.");
+                    document.getElementById('nav-speakers-tab').click();
+                } else {
+                    const d = await response.json(); alert(`❌ Fout: ${d.error}`);
+                }
+            } catch (e) { alert("Fout bij uitvoeren reboot."); }
+        }
+
+        async function executeDoctorPairAccount() {
+            const accId = document.getElementById('doc-account-id').value.trim();
+            if (!accId) { alert("⚠️ Vul alle velden in!"); return; }
+            try {
+                const response = await fetch('/api/doctor/set-account', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ip: SELECTED_SPEAKER_IP, accountId: accId })
+                });
+                if (response.ok) alert("🟢 Gekoppeld!"); else { const d = await response.json(); alert(`❌ Fout: ${d.error}`); }
+            } catch (e) { alert("Fout tijdens koppelen."); }
+        }
+
+        // --- APPARAAT REMOTE OPENEN EN SYNCHRONISATIE ---
+        function openSpeakerRemote(deviceId) {
+            SELECTED_SPEAKER_ID = deviceId;
+            const dev = RAW_DEVICES_CACHE.find(d => d.id === deviceId);
+            if (!dev) return;
+
+            SELECTED_SPEAKER_IP = dev.ip;
+            const remoteBtn = document.getElementById('nav-remote-tab');
+            remoteBtn.style.display = 'block';
+            remoteBtn.innerText = `🎮 Remote: ${dev.name}`;
+
+            document.getElementById('remote-speaker-name').innerText = dev.name;
+            document.getElementById('remote-speaker-ip').innerText = dev.ip;
+
+            const presetContainer = document.getElementById('remote-presets-container');
+            if (dev.presets && dev.presets.length > 0) {
+                presetContainer.innerHTML = dev.presets.map(p => {
+                    const bgImg = ensureHttps(p.containerArt || '');
+                    const styleAttr = bgImg ? `style="background-image: url('${bgImg}');"` : '';
+                    const serviceName = p.source ? p.source.toLowerCase().replace('_', ' ') : 'local';
+
+                    return `
+                        <button class="btn-preset" onclick="setPreset('${dev.ip}', ${p.number})" title="${p.name} (${p.source})" ${styleAttr}>
+                            <span class="preset-number">${p.number}</span>
+                            <div class="preset-overlay">
+                                <span class="preset-text">${p.name}</span>
+                                <span class="preset-source">${serviceName}</span>
+                            </div>
+                        </button>
+                    `;
+                }).join('');
+            } else {
+                presetContainer.innerHTML = '<p style="grid-column: span 3; font-size:0.9em; color:#666;">Geen presets beschikbaar.</p>';
+            }
+
+            isUserDraggingVolume = false;
+            switchDoctorView(false);
+            updateRemoteLiveElements(deviceId);
+
+            switchTab(null, 'remote-tab');
+            document.getElementById('nav-remote-tab').classList.add('active');
+        }
+
+        function updateRemoteLiveElements(deviceId) {
+            if (SELECTED_SPEAKER_ID !== deviceId) return;
+
+            const live = CURRENT_LIVE_STATES_CACHE[deviceId] || {};
+            const trackEl = document.getElementById('remote-track-title');
+            const artistEl = document.getElementById('remote-artist-name');
+            const artEl = document.getElementById('remote-album-art');
+            const powerBtn = document.getElementById('remote-power-btn');
+            const slider = document.getElementById('remote-volume-range');
+            const volumeText = document.getElementById('remote-volume-text');
+            const muteBtn = document.getElementById('remote-mute-btn');
+
+            let liveTrack = live.track || "";
+            if (liveTrack === "Laden..." || live.status === "STANDBY" || liveTrack.toLowerCase().includes("standby")) {
+                liveTrack = "";
+            }
+            let liveArtist = liveTrack ? (live.artist || "") : "";
+
+            if (trackEl) trackEl.innerText = liveTrack || "Standby / Geen media";
+            if (artistEl) artistEl.innerText = liveArtist;
+
+            if (powerBtn) {
+                if (live.status && live.status !== "STANDBY") powerBtn.classList.add('active-mode');
+                else powerBtn.classList.remove('active-mode');
+            }
+
+            if (slider && volumeText) {
+                const volVal = live.volume !== undefined ? live.volume : 0;
+                if (!isUserDraggingVolume) {
+                    slider.value = volVal;
+                    volumeText.innerText = live.muted ? `GEDEMPT (${volVal}%)` : `${volVal}%`;
+                }
+            }
+
+            if (muteBtn) {
+                if (live.muted) {
+                    muteBtn.innerText = "🔊 Unmute System";
+                    muteBtn.style.borderColor = "#e23e57";
+                    muteBtn.style.color = "#e23e57";
+                    muteBtn.style.background = "rgba(226, 62, 87, 0.1)";
+                } else {
+                    muteBtn.innerText = "🔇 Mute System";
+                    muteBtn.style.borderColor = "#555";
+                    muteBtn.style.color = "#fff";
+                    muteBtn.style.background = "#2a2a2a";
+                }
+            }
+
+            const prevBtn = document.getElementById('remote-prev-btn');
+            const nextBtn = document.getElementById('remote-next-btn');
+            if (prevBtn && nextBtn) {
+                const activeSource = live.source ? live.source.toUpperCase() : "STANDBY";
+                if (activeSource === "TUNEIN" || activeSource === "INTERNET_RADIO" || activeSource === "AUX_INPUT" || activeSource === "STANDBY") {
+                    prevBtn.style.display = 'none';
+                    nextBtn.style.display = 'none';
+                } else {
+                    prevBtn.style.display = 'block';
+                    nextBtn.style.display = 'block';
+                }
+            }
+
+            if (artEl) {
+                const safeArtUrl = ensureHttps(live.art_url);
+                if (liveTrack && safeArtUrl && safeArtUrl.trim() !== "") {
+                    artEl.src = safeArtUrl; artEl.style.display = "block";
+                } else { artEl.style.display = "none"; }
+            }
+        }
+
+        function handleVolumeSliderInput(val) {
+            isUserDraggingVolume = true;
+            document.getElementById('remote-volume-text').innerText = `${val}%`;
+        }
+
+        async function sendVolumeSliderToBackend(val) {
+            isUserDraggingVolume = false;
+            try {
+                await fetch('/api/speaker/volume', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ip: SELECTED_SPEAKER_IP, level: parseInt(val) })
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        function triggerVolumeDownButton() { triggerActionHold(SELECTED_SPEAKER_IP, 'VOLUME_DOWN'); }
+        function triggerVolumeUpButton() { triggerActionHold(SELECTED_SPEAKER_IP, 'VOLUME_UP'); }
+        function triggerMuteKeyToggle() { triggerActionHold(SELECTED_SPEAKER_IP, 'MUTE'); }
+        function triggerPowerButtonHold() { triggerActionHold(SELECTED_SPEAKER_IP, 'POWER'); }
+        function triggerMediaKey(keyName) { triggerActionHold(SELECTED_SPEAKER_IP, keyName); }
+
+        async function refreshInventoryData() {
+            try {
+                const response = await fetch('/api/inventory');
+                if (!response.ok) return;
+                const data = await response.json();
+
+                RAW_DEVICES_CACHE = data.databaseDevices || [];
+                RAW_DEVICES_CACHE.sort((a, b) => a.name.localeCompare(b.name));
+                GLOBAL_SPOTIFY_PROFILES = data.spotifyAccounts || [];
+
+                const container = document.getElementById('db-speakers-container');
+                if (RAW_DEVICES_CACHE.length === 0) {
+                    container.innerHTML = "<p style='box-sizing: border-box; color: #888;'>Geen geregistreerde speakers gevonden.</p>";
+                    return;
+                }
+
+                container.innerHTML = RAW_DEVICES_CACHE.map(dev => {
+                    const live = CURRENT_LIVE_STATES_CACHE[dev.id] || {};
+                    const currentStatus = live.status || "STANDBY";
+                    let trackTitle = live.track || "";
+                    if (trackTitle === "Laden..." || currentStatus === "STANDBY" || trackTitle.toLowerCase().includes("standby")) trackTitle = "";
+                    const artistName = (trackTitle) ? (live.artist || "") : "";
+                    const artUrl = ensureHttps(live.art_url || "");
+
+                    const isPlaying = currentStatus === "PLAY_STATE";
+                    const isBuffering = currentStatus === "BUFFERING_STATE";
+                    let badgeText = "STANDBY", badgeStyle = "background: #333; color: #fff;";
+
+                    if (isPlaying) { badgeText = "SPELEND"; badgeStyle = "background: #1DB954; color: #000;"; }
+                    else if (isBuffering) { badgeText = "BUFFEREN..."; badgeStyle = "background: #e23e57; color: #fff;"; }
+
+                    const cardStyle = artUrl ? `--card-bg-url: url('${artUrl}');` : '';
+
+                    return `
+                        <div class="speaker-card" data-device-id="${dev.id}" data-ip="${dev.ip}" style="${cardStyle}" onclick="openSpeakerRemote('${dev.id}')">
+                            <div class="speaker-header">
+                                <div>
+                                    <div class="speaker-title">${dev.name}</div>
+                                    <div class="speaker-ip">${dev.ip}</div>
+                                </div>
+                                <span class="state-badge ${isPlaying ? 'playing' : ''}" style="${badgeStyle}">${badgeText}</span>
+                            </div>
+                            <div class="live-metadata-container">
+                                <img class="live-album-art" src="${artUrl}" style="display: ${trackTitle && artUrl ? 'block' : 'none'};">
+                                <div class="metadata-text">
+                                    <div class="live-track-title">${trackTitle}</div>
+                                    <div class="live-artist-name">${artistName}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) { console.error(error); }
+        }
+
+        function setupLiveTelemetryStream() {
+            const stream = new EventSource('/api/stream');
+            stream.onmessage = function (event) {
+                const states = JSON.parse(event.data);
+                Object.keys(states).forEach(id => { CURRENT_LIVE_STATES_CACHE[id] = states[id]; });
+                Object.keys(states).forEach(deviceId => {
+                    const data = states[deviceId];
+                    let card = document.querySelector(`[data-device-id="${deviceId}"]`);
+                    if (!card && data.ip) card = document.querySelector(`[data-ip="${data.ip}"]`);
+
+                    if (card) {
+                        const trackEl = card.querySelector('.live-track-title');
+                        const artistEl = card.querySelector('.live-artist-name');
+                        const badgeEl = card.querySelector('.state-badge');
+                        const artEl = card.querySelector('.live-album-art');
+
+                        let liveTrack = data.track || "";
+                        if (liveTrack === "Laden..." || data.status === "STANDBY" || liveTrack.toLowerCase().includes("standby")) liveTrack = "";
+                        let liveArtist = liveTrack ? (data.artist || "") : "";
+                        const safeArtUrl = ensureHttps(data.art_url);
+
+                        if (trackEl) trackEl.innerText = liveTrack;
+                        if (artistEl) artistEl.innerText = liveArtist;
+                        if (liveTrack && safeArtUrl && safeArtUrl.trim() !== "") card.style.setProperty('--card-bg-url', `url('${safeArtUrl}')`);
+                        else card.style.setProperty('--card-bg-url', 'none');
+
+                        if (badgeEl) {
+                            badgeEl.className = "state-badge"; badgeEl.style.backgroundColor = ''; badgeEl.style.color = '';
+                            if (data.status === "PLAY_STATE") {
+                                badgeEl.innerText = "SPELEND"; badgeEl.className = "state-badge playing"; badgeEl.style.backgroundColor = '#1DB954'; badgeEl.style.color = '#000';
+                            } else if (data.status === "BUFFERING_STATE") {
+                                badgeEl.innerText = "BUFFEREN..."; badgeEl.style.backgroundColor = '#e23e57'; badgeEl.style.color = '#fff';
+                            } else {
+                                badgeEl.innerText = data.status ? data.status.replace("_STATE", "") : "STANDBY"; badgeEl.style.backgroundColor = '#333'; badgeEl.style.color = '#fff';
+                            }
+                        }
+                        if (artEl) {
+                            if (liveTrack && safeArtUrl && safeArtUrl.trim() !== "") { artEl.src = safeArtUrl; artEl.style.display = "block"; }
+                            else artEl.style.display = "none";
+                        }
+                    }
+                    if (SELECTED_SPEAKER_ID === deviceId) updateRemoteLiveElements(deviceId);
+                });
+            };
+            stream.onerror = function () { stream.close(); setTimeout(setupLiveTelemetryStream, 5000); };
+        }
+
+        async function triggerActionHold(ip, actionKey) {
+            try {
+                await fetch('/api/key', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ip: ip, key: actionKey, state: 'press' })
+                });
+                setTimeout(async () => {
+                    await fetch('/api/key', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ip: ip, key: actionKey, state: 'release' })
+                    });
+                }, 50);
+            } catch (e) { console.error(e); }
+        }
+
+        async function setPreset(ip, presetNum) { triggerActionHold(ip, `PRESET_${presetNum}`); }
+
+        async function pollLiveNetworkSpeakers() {
+            try {
+                const response = await fetch('/api/speakers');
+                if (!response.ok) return;
+                const scannedSpeakers = await response.json();
+                const container = document.getElementById('network-speakers-container');
+                if (scannedSpeakers.length === 0) {
+                    container.innerHTML = "<p style='color: #666; font-size: 0.9em;'>Alle ontdekte netwerkspeakers zijn gekoppeld.</p>"; return;
+                }
+                container.innerHTML = scannedSpeakers.map(s => `
+                    <div class="speaker-card" style="border-left: 4px solid #ff9f43; cursor: default;">
+                        <div class="speaker-header"><div><div class="speaker-title">${s.name || 'Bose SoundTouch'}</div><div class="speaker-ip">${s.ip}</div></div><span class="state-badge" style="background: #ff9f43; color: #000;">NIEUW</span></div>
+                    </div>
+                `).join('');
+            } catch (e) { console.error(e); }
+        }
+
+        async function triggerManualScan() {
+            try {
+                const response = await fetch('/api/speakers/scan', { method: 'POST' });
+                if (response.ok) { alert("🔍 Netwerk scan succesvol gestart!"); pollLiveNetworkSpeakers(); }
+            } catch (error) { console.error(error); }
+        }
+
+        async function loadSpotifyAccounts() {
+            try {
+                const response = await fetch('/api/inventory');
+                if (!response.ok) return;
+                const data = await response.json();
+                const accounts = data.spotifyAccounts || [];
+                GLOBAL_SPOTIFY_PROFILES = accounts;
+                const container = document.getElementById('spotify-accounts-container');
+                if (accounts.length === 0) {
+                    container.innerHTML = "<p style='color: #888;'>Nog geen Spotify profielen geladen.</p>"; return;
+                }
+                container.innerHTML = accounts.map(acc => `
+                    <div class="spotify-account-card">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <img src="/api/spotify/avatar/${acc.spotifyUserId}" style="width: 45px; height: 45px; border-radius: 50%; border: 2px solid #1DB954;" onerror="this.src='https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'">
+                            <div><div style="font-weight: bold; color: #fff;">${acc.displayName}</div><div style="font-size: 0.85em; color: #888;">ID: ${acc.spotifyUserId}</div></div>
+                        </div>
+                        <span style="color: #1DB954; font-weight: bold; font-size: 0.9em;">🟢 Gekoppeld</span>
+                    </div>
+                `).join('');
+            } catch (e) { console.error(e); }
+        }
+
+        setInterval(pollLiveNetworkSpeakers, 10000);
+        refreshInventoryData();
+        pollLiveNetworkSpeakers();
+        loadSpotifyAccounts();
+        setupLiveTelemetryStream();
+    </script>
+</body>
+
+</html>

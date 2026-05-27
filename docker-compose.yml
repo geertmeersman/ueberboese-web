@@ -1,0 +1,14 @@
+services:
+  ueberboese-web:
+    build: .
+    image: ueberboese-web:latest
+    container_name: ueberboese-web
+    network_mode: host
+    environment:
+      - TZ=${TZ}
+      - FLASK_SECRET_KEY=${FLASK_SECRET_KEY}
+      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
+      - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
+      - UEBERBOESE_API_URL=${UEBERBOESE_API_URL}
+      - UEBERBOESE_WEB_PORT=${UEBERBOESE_WEB_PORT}
+    restart: unless-stopped

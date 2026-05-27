@@ -1,5 +1,25 @@
 # Changelog
 
+## [v0.1.4](https://github.com/geertmeersman/ueberboese-web/tree/v0.1.4) (2026-05-27)
+
+[Full Changelog](https://github.com/geertmeersman/ueberboese-web/compare/v0.1.3...v0.1.4)
+
+## [v0.1.3](https://github.com/geertmeersman/ueberboese-web/tree/v0.1.3) (2026-05-27)
+
+[Full Changelog](https://github.com/geertmeersman/ueberboese-web/compare/v0.1.2...v0.1.3)
+
+**Merged pull requests:**
+
+- build\(workflow\): add rebase option to commit release notes step [\#6](https://github.com/geertmeersman/ueberboese-web/pull/6) ([geertmeersman](https://github.com/geertmeersman))
+
+## [v0.1.2](https://github.com/geertmeersman/ueberboese-web/tree/v0.1.2) (2026-05-27)
+
+[Full Changelog](https://github.com/geertmeersman/ueberboese-web/compare/v0.1.1...v0.1.2)
+
+## [v0.1.1](https://github.com/geertmeersman/ueberboese-web/tree/v0.1.1) (2026-05-27)
+
+[Full Changelog](https://github.com/geertmeersman/ueberboese-web/compare/v0.1.0...v0.1.1)
+
 ## [v0.1.0](https://github.com/geertmeersman/ueberboese-web/tree/v0.1.0) (2026-05-27)
 
 [Full Changelog](https://github.com/geertmeersman/ueberboese-web/compare/496e1a6871560c454025bbf4ac937118181acd58...v0.1.0)

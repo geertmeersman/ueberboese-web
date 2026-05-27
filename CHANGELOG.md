@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.3.1](https://github.com/geertmeersman/ueberboese-web/tree/v0.3.1) (2026-05-27)
+
+[Full Changelog](https://github.com/geertmeersman/ueberboese-web/compare/v0.3.0...v0.3.1)
+
+**Merged pull requests:**
+
+- chore: update Docker Hub description action to version 5 [\#9](https://github.com/geertmeersman/ueberboese-web/pull/9) ([geertmeersman](https://github.com/geertmeersman))
+
 ## [v0.3.0](https://github.com/geertmeersman/ueberboese-web/tree/v0.3.0) (2026-05-27)
 
 [Full Changelog](https://github.com/geertmeersman/ueberboese-web/compare/v0.2.0...v0.3.0)

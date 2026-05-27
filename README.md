@@ -6,6 +6,8 @@ A lightweight, high-performance web controller designed to orchestrate Bose Soun
 
 [![maintainer](https://img.shields.io/badge/maintainer-Geert%20Meersman-green?style=for-the-badge&logo=github)](https://github.com/geertmeersman)
 [![buyme_coffee](https://img.shields.io/badge/Buy%20me%20an%20Omer-donate-yellow?style=for-the-badge&logo=buymeacoffee)](https://www.buymeacoffee.com/geertmeersman)
+[![discord](https://img.shields.io/discord/1094198226493636638?style=for-the-badge&logo=discord)](https://discord.gg/Szxgz7D883)
+
 [![MIT License](https://img.shields.io/github/license/geertmeersman/ueberboese-web?style=for-the-badge)](https://github.com/geertmeersman/ueberboese-web/blob/main/LICENSE)
 
 [![GitHub issues](https://img.shields.io/github/issues/geertmeersman/ueberboese-web)](https://github.com/geertmeersman/ueberboese-web/issues)

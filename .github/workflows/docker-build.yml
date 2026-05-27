@@ -1,0 +1,80 @@
+name: Build and Push Docker Image
+
+on: [workflow_dispatch]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: 🗑　Delete drafts
+        uses: hugo19941994/delete-draft-releases@v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📝　Draft release
+        uses: release-drafter/release-drafter@v7
+        id: release_drafter
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🔄　Update version in 'VERSION' and push changes
+        env:
+          tag_name: ${{ steps.release_drafter.outputs.tag_name }}
+        run: echo "$tag_name" > VERSION
+
+      - name: 📝　Publish release
+        uses: release-drafter/release-drafter@v7
+        id: release_published
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          publish: true
+
+      - name: ✏️　Generate release changelog
+        uses: heinrichreimer/github-changelog-generator-action@v2.4
+        with:
+          token: ${{ secrets.GH_PAT }}
+          issues: true
+          issuesWoLabels: true
+          pullRequests: true
+          prWoLabels: true
+          unreleased: false
+          addSections: '{"documentation":{"prefix":"**Documentation:**","labels":["documentation"]}}'
+
+      - name: ✅　Commit release notes
+        uses: EndBug/add-and-commit@v10
+        with:
+          message: Commit release notes and bump version ${{ steps.release_drafter.outputs.tag_name }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: 🚀 Build and push Docker image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ github.repository }}:latest
+            ${{ github.repository }}:${{ steps.release_drafter.outputs.tag_name }}
+
+      - name: 🚀　Discord notification
+        env:
+          tag_name: ${{ steps.release_drafter.outputs.tag_name }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        uses: Ilshidur/action-discord@master
+        with:
+          args: "New release published: https://github.com/{{ EVENT_PAYLOAD.repository.full_name }}/releases/tag/{{tag_name}}"

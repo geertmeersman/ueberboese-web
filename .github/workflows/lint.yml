@@ -1,0 +1,26 @@
+name: "Analysis - Ruff"
+
+on:
+  push:
+    branches: ["main"]
+    paths: ["**.py"]
+  pull_request:
+    branches: ["main"]
+    paths: ["**.py"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ruff:
+    name: "Ruff"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout the repository"
+        uses: actions/checkout@v6
+
+      - name: "Run Ruff"
+        uses: astral-sh/ruff-action@v3
+        with:
+          args: check .

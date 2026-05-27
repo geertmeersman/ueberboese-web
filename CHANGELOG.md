@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.3.0](https://github.com/geertmeersman/ueberboese-web/tree/v0.3.0) (2026-05-27)
+
+[Full Changelog](https://github.com/geertmeersman/ueberboese-web/compare/v0.2.0...v0.3.0)
+
+**Merged pull requests:**
+
+- feat: add Docker Hub description update step to workflow [\#8](https://github.com/geertmeersman/ueberboese-web/pull/8) ([geertmeersman](https://github.com/geertmeersman))
+
 ## [v0.2.0](https://github.com/geertmeersman/ueberboese-web/tree/v0.2.0) (2026-05-27)
 
 [Full Changelog](https://github.com/geertmeersman/ueberboese-web/compare/496e1a6871560c454025bbf4ac937118181acd58...v0.2.0)

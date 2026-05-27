@@ -19,17 +19,12 @@ A lightweight, high-performance web controller designed to orchestrate Bose Soun
 The application utilizes environment variables for configuration. Create a `.env` file in the root directory based on the following keys:
 
 
-```
-
-```text
-README-v2.md generated successfully.
-
 ```bash
 # Example .env configuration
 FLASK_SECRET_KEY=your_super_secret_session_key_here
 SPOTIFY_CLIENT_ID=your_spotify_client_id_here
 SPOTIFY_CLIENT_SECRET=your_spotify_client_secret_here
-UEBERBOESE_API_URL=[http://10.0.0.5:8000](http://10.0.0.5:8000)
+UEBERBOESE_API_URL=http://10.0.0.5:8000
 UEBERBOESE_WEB_PORT=7082
 
 ```

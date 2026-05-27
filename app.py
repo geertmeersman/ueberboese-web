@@ -41,6 +41,8 @@ DATABASE_DEVICES_CACHE = {}  # Local memory cache to screen network scan duplica
 SOURCE_PROVIDERS_CACHE = (
     {}
 )  # Dynamic mapping for sourceproviderid -> name (e.g. {"15": "SPOTIFY"})
+DISCOVERED_SPEAKERS_LOCK = threading.Lock()
+DATABASE_DEVICES_CACHE_LOCK = threading.Lock()
 
 # --- REALTIME WEBSOCKET & SSE CACHES ---
 LIVE_STATES = {}  # Tracks now-playing info and volume per device ID
@@ -483,7 +485,8 @@ def fetch_global_inventory():
                             "presets": device_presets,
                         }
 
-            DATABASE_DEVICES_CACHE = devices_in_db
+            with DATABASE_DEVICES_CACHE_LOCK:
+                DATABASE_DEVICES_CACHE = devices_in_db
             sync_websocket_listeners(devices_in_db)
 
             # DYNAMIC LOOKUP FOR SPOTIFY / OPERATIONAL SOURCES
@@ -585,22 +588,30 @@ def trigger_upnp_scan():
                             break
                     if location:
                         speaker_ip = addr[0]
-                        if speaker_ip not in DISCOVERED_SPEAKERS:
+                        with DISCOVERED_SPEAKERS_LOCK:
+                            already_known = speaker_ip in DISCOVERED_SPEAKERS
+
+                        if not already_known:
                             details = fetch_speaker_details(location)
                             if "soundtouch" in details["model"].lower():
                                 logger.info(
                                     f"✨ Found SoundTouch Speaker: '{details['name']}'"
                                 )
-                                DISCOVERED_SPEAKERS[speaker_ip] = {
-                                    "id": details.get("id"),
-                                    "ip": speaker_ip,
-                                    "name": details["name"],
-                                    "model": details["model"],
-                                    "location": location,
-                                    "last_seen": time.time(),
-                                }
+                                with DISCOVERED_SPEAKERS_LOCK:
+                                    if speaker_ip not in DISCOVERED_SPEAKERS:
+                                        DISCOVERED_SPEAKERS[speaker_ip] = {
+                                            "id": details.get("id"),
+                                            "ip": speaker_ip,
+                                            "name": details["name"],
+                                            "model": details["model"],
+                                            "location": location,
+                                            "last_seen": time.time(),
+                                        }
                         else:
-                            DISCOVERED_SPEAKERS[speaker_ip]["last_seen"] = time.time()
+                            with DISCOVERED_SPEAKERS_LOCK:
+                                DISCOVERED_SPEAKERS[speaker_ip][
+                                    "last_seen"
+                                ] = time.time()
             except socket.timeout:
                 break
         sock.close()
@@ -670,11 +681,16 @@ def get_inventory():
 @app.route("/api/speakers", methods=["GET"])
 def get_speakers():
     unregistered_scanned_speakers = {}
-    for ip, data in DISCOVERED_SPEAKERS.items():
+    with DISCOVERED_SPEAKERS_LOCK:
+        scanned_snapshot = dict(DISCOVERED_SPEAKERS)
+    with DATABASE_DEVICES_CACHE_LOCK:
+        db_snapshot = dict(DATABASE_DEVICES_CACHE)
+
+    for ip, data in scanned_snapshot.items():
         is_already_in_db = any(
             dev["ip"] == ip
             or (data.get("id") and dev["id"].lower() == data["id"].lower())
-            for dev in DATABASE_DEVICES_CACHE.values()
+            for dev in db_snapshot.values()
         )
         if not is_already_in_db:
             unregistered_scanned_speakers[ip] = data

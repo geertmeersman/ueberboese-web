@@ -37,6 +37,19 @@ The codebase and logic for this web interface are partly based on and inspired b
 * 🌐 **Multi-Language Support:** Fully localized in English (EN) and Dutch (NL) using Flask-Babel.
 
 ---
+## 📸 Screenshots
+
+Here is a glimpse of the web interface in action:
+
+#### Network Overview Dashboard
+
+![Network Overview](https://raw.githubusercontent.com/geertmeersman/ueberboese-web/main/images/screenshots/overview.png)
+
+#### Speaker Control & Diagnostics
+
+![Speaker Control](https://raw.githubusercontent.com/geertmeersman/ueberboese-web/main/images/screenshots/speaker.png)
+
+---
 
 ## 🛠️ Environment Variables
 

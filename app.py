@@ -29,7 +29,9 @@ logger = logging.getLogger("UeberBoseUI")
 app = Flask(__name__)
 
 # --- SESSION CONFIGURATION ---
-app.secret_key = os.getenv("FLASK_SECRET_KEY", "super-secret-ueberbose-key-change-this")
+app.secret_key = os.getenv("FLASK_SECRET_KEY")
+if not app.secret_key:
+    raise RuntimeError("FLASK_SECRET_KEY is required")
 
 # --- CONFIGURATION ---
 UEBERBOESE_API_URL = os.getenv("UEBERBOESE_API_URL", "http://10.0.0.5:8000")

@@ -1,23 +1,24 @@
+import base64
+import json
+import logging
 import os
+import queue
 import re
 import socket
 import threading
 import time
-import logging
 import xml.etree.ElementTree as ET
+
 import requests
-import base64
-import queue
-import json
 import websocket
 from flask import (
     Flask,
+    Response,
     jsonify,
+    redirect,
     render_template,
     request,
-    Response,
     session,
-    redirect,
     url_for,
 )
 
@@ -40,9 +41,7 @@ SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET", "YOUR_CLIENT_SECRET_H
 
 DISCOVERED_SPEAKERS = {}
 DATABASE_DEVICES_CACHE = {}  # Local memory cache to screen network scan duplicates
-SOURCE_PROVIDERS_CACHE = (
-    {}
-)  # Dynamic mapping for sourceproviderid -> name (e.g. {"15": "SPOTIFY"})
+SOURCE_PROVIDERS_CACHE = {}  # Dynamic mapping for sourceproviderid -> name (e.g. {"15": "SPOTIFY"})
 DISCOVERED_SPEAKERS_LOCK = threading.Lock()
 DATABASE_DEVICES_CACHE_LOCK = threading.Lock()
 
@@ -611,9 +610,9 @@ def trigger_upnp_scan():
                                         }
                         else:
                             with DISCOVERED_SPEAKERS_LOCK:
-                                DISCOVERED_SPEAKERS[speaker_ip][
-                                    "last_seen"
-                                ] = time.time()
+                                DISCOVERED_SPEAKERS[speaker_ip]["last_seen"] = (
+                                    time.time()
+                                )
             except socket.timeout:
                 break
         sock.close()
@@ -770,7 +769,7 @@ def trigger_speaker_key():
             res = send_xml(state)
             status_code = res.status_code
         else:
-            res_press = send_xml("press")
+            send_xml("press")
             time.sleep(0.05)
             res_release = send_xml("release")
             status_code = res_release.status_code

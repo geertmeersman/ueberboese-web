@@ -1,31 +1,13 @@
 # Changelog
 
-## [v0.1.4](https://github.com/geertmeersman/ueberboese-web/tree/v0.1.4) (2026-05-27)
+## [v0.2.0](https://github.com/geertmeersman/ueberboese-web/tree/v0.2.0) (2026-05-27)
 
-[Full Changelog](https://github.com/geertmeersman/ueberboese-web/compare/v0.1.3...v0.1.4)
-
-## [v0.1.3](https://github.com/geertmeersman/ueberboese-web/tree/v0.1.3) (2026-05-27)
-
-[Full Changelog](https://github.com/geertmeersman/ueberboese-web/compare/v0.1.2...v0.1.3)
+[Full Changelog](https://github.com/geertmeersman/ueberboese-web/compare/496e1a6871560c454025bbf4ac937118181acd58...v0.2.0)
 
 **Merged pull requests:**
 
+- chore: update Docker build workflow to improve release process and version bumping [\#7](https://github.com/geertmeersman/ueberboese-web/pull/7) ([geertmeersman](https://github.com/geertmeersman))
 - build\(workflow\): add rebase option to commit release notes step [\#6](https://github.com/geertmeersman/ueberboese-web/pull/6) ([geertmeersman](https://github.com/geertmeersman))
-
-## [v0.1.2](https://github.com/geertmeersman/ueberboese-web/tree/v0.1.2) (2026-05-27)
-
-[Full Changelog](https://github.com/geertmeersman/ueberboese-web/compare/v0.1.1...v0.1.2)
-
-## [v0.1.1](https://github.com/geertmeersman/ueberboese-web/tree/v0.1.1) (2026-05-27)
-
-[Full Changelog](https://github.com/geertmeersman/ueberboese-web/compare/v0.1.0...v0.1.1)
-
-## [v0.1.0](https://github.com/geertmeersman/ueberboese-web/tree/v0.1.0) (2026-05-27)
-
-[Full Changelog](https://github.com/geertmeersman/ueberboese-web/compare/496e1a6871560c454025bbf4ac937118181acd58...v0.1.0)
-
-**Merged pull requests:**
-
 - build\(deps\): bump actions/dependency-review-action from 4 to 5 [\#5](https://github.com/geertmeersman/ueberboese-web/pull/5) ([dependabot[bot]](https://github.com/apps/dependabot))
 - build\(deps\): bump actions/github-script from 8 to 9 [\#4](https://github.com/geertmeersman/ueberboese-web/pull/4) ([dependabot[bot]](https://github.com/apps/dependabot))
 - workflows [\#3](https://github.com/geertmeersman/ueberboese-web/pull/3) ([geertmeersman](https://github.com/geertmeersman))

@@ -43,11 +43,11 @@ Here is a glimpse of the web interface in action:
 
 #### Network Overview Dashboard
 
-![Network Overview](images/screenshots/overview.png)
+![Network Overview](https://raw.githubusercontent.com/geertmeersman/ueberboese-web/main/images/screenshots/overview.png)
 
 #### Speaker Control & Diagnostics
 
-![Speaker Control](images/screenshots/speaker.png)
+![Speaker Control](https://raw.githubusercontent.com/geertmeersman/ueberboese-web/main/images/screenshots/speaker.png)
 
 ---
 

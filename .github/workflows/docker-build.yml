@@ -52,6 +52,7 @@ jobs:
         uses: EndBug/add-and-commit@v10
         with:
           message: Commit release notes and bump version ${{ steps.release_drafter.outputs.tag_name }}
+          pull: "--rebase --autostash"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4

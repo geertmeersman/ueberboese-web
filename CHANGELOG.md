@@ -1,5 +1,14 @@
 # Changelog
 
+## [v0.3.2](https://github.com/geertmeersman/ueberboese-web/tree/v0.3.2) (2026-05-27)
+
+[Full Changelog](https://github.com/geertmeersman/ueberboese-web/compare/v0.3.1...v0.3.2)
+
+**Merged pull requests:**
+
+-  docs: add screenshots to README for better visualization of the web interface [\#11](https://github.com/geertmeersman/ueberboese-web/pull/11) ([geertmeersman](https://github.com/geertmeersman))
+- docs: update README to include inspiration sources from ueberboese-ap… [\#10](https://github.com/geertmeersman/ueberboese-web/pull/10) ([geertmeersman](https://github.com/geertmeersman))
+
 ## [v0.3.1](https://github.com/geertmeersman/ueberboese-web/tree/v0.3.1) (2026-05-27)
 
 [Full Changelog](https://github.com/geertmeersman/ueberboese-web/compare/v0.3.0...v0.3.1)

@@ -26,6 +26,8 @@ A lightweight, high-performance web controller designed to orchestrate Bose Soun
 
 ⚠️ **Prerequisite:** This frontend web application requires [ueberboese-api](https://github.com/julius-d/ueberboese-api) running as its backend management server.
 
+The codebase and logic for this web interface are partly based on and inspired by the ecosystem structures found in **[ueberboese-api](https://github.com/julius-d/ueberboese-api)** and the mobile client application **[ueberboese-app](https://github.com/julius-d/ueberboese-app)**.
+
 ### Key Features
 
 * 📺 **Real-time Dashboard:** Alphabetical overview of all audio nodes with reactive Server-Sent Events (SSE) telemetry.

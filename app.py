@@ -10,6 +10,7 @@ import base64
 import queue
 import json
 import websocket
+import ipaddress
 from flask import (
     Flask,
     jsonify,
@@ -692,6 +693,9 @@ def run_manual_scan():
 def set_speaker_volume_level():
     """Sets the absolute volume level of a speaker using raw XML over HTTP."""
     data = request.json
+    if not isinstance(data, dict):
+        return jsonify({"error": "Invalid JSON body"}), 400
+
     ip = data.get("ip")
     level = data.get("level")
 
@@ -699,10 +703,21 @@ def set_speaker_volume_level():
         return jsonify({"error": "Missing 'ip' or 'level'"}), 400
 
     try:
+        validated_ip = str(ipaddress.ip_address(str(ip).strip()))
+
+        allowed_ips = set(DISCOVERED_SPEAKERS.keys())
+        allowed_ips.update(
+            str(dev.get("ip")).strip()
+            for dev in DATABASE_DEVICES_CACHE.values()
+            if dev.get("ip")
+        )
+        if validated_ip not in allowed_ips:
+            return jsonify({"error": "Unknown or unauthorized speaker IP"}), 403
+
         level = max(0, min(100, int(level)))
         xml_payload = f"<volume>{level}</volume>"
 
-        url = f"http://{ip}:8090/volume"
+        url = f"http://{validated_ip}:8090/volume"
         response = requests.post(
             url,
             data=xml_payload,
